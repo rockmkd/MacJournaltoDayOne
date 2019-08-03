@@ -35,7 +35,7 @@ def main(argv=None):
 	usage = "usage:  %prog [options] <MacJournal Export File to import>"
 	parser = optparse.OptionParser(usage=usage)
 	
-	parser.add_option("--debug", dest="debug", default=False, action = "store_true", help = "Turn on debug output (default false)")
+	parser.add_option("--debug", dest="debug", default=True, action = "store_true", help = "Turn on debug output (default true)")
 	parser.add_option("--journal", dest='target_journal', default="MacJournal Import", action = "store", help = "Specify the target journal name in Day One (default is 'MacJournal Import')")
 	
 	(options, args) = parser.parse_args()
@@ -48,7 +48,7 @@ def main(argv=None):
 	if options.debug:
 		logging.basicConfig(level=logging.DEBUG)
 	else:
-		logging.basicConfig(level=logging.DEBUG)
+		logging.basicConfig(level=logging.ERROR)
 	
 	print "Target journal: {0}".format(options.target_journal)
 
@@ -86,7 +86,7 @@ def main(argv=None):
 			curEntry = ''
 			curEntryLines = 0
 
-			print("Reached EOF")
+			main_logger.debug("Reached EOF")
 	
 		if entryLine.startswith("\tDate:\t"): # An entry is finished
 			prevEntryDate = curEntryDate
@@ -96,7 +96,7 @@ def main(argv=None):
 			curEntryLines = 0
 			curEntryDate = entryLine.replace("\tDate:\t",'').rstrip()
 			entryDone = True
-			print("Found entry " + curEntryDate)
+			main_logger.debug("Found entry: {0}".format(curEntryDate))
 		elif entryLine.startswith('\tTopic:\t'): # The current entry topic
 			prevEntryTopic = curEntryTopic
 			curEntryTopic = entryLine.replace('\tTopic:\t','').rstrip()
@@ -106,20 +106,25 @@ def main(argv=None):
 
 		if (entryDone is True) and (prevEntryLines is not 0):
 			#Write output to DayOne
-			print '{0} has {1} lines with topic "{2}"'.format(prevEntryDate,repr(prevEntryLines), prevEntryTopic)
+			main_logger.info('{0} has {1} lines with topic "{2}"'.format(prevEntryDate,repr(prevEntryLines), prevEntryTopic))
 			addCommandParsed = ['dayone2', 'new', 
 				'-d', '{0}'.format(prevEntryDate),
 				'-j', '{0}'.format(options.target_journal)
 				]
 			try:
-				print(addCommandParsed)
+				main_logger.debug("dayone2 {0}".format(addCommandParsed))
 				addCommandProcess = subprocess.Popen(addCommandParsed,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
 			except:
 				None
 			formatEntry = "{0}\n{1}\n".format(prevEntryTopic, prevEntry)
 			addCommandOut = addCommandProcess.communicate(formatEntry)
-			print addCommandOut[0]
-			print addCommandOut[1]
+			main_logger.info("STDOUT from dayone2: {0}".format(addCommandOut[0]))
+			main_logger.info("STDERR from dayone2: {0}".format(addCommandOut[1]))
+			addCommandProcess.wait()
+			returnCode = addCommandProcess.returncode
+			if returnCode != 0:
+				main_logger.error("DayOne failed to import entry dated {0} with error code {1}".format(prevEntryDate, returnCode))
+				break
 			numEntries += 1
 			entryDone = False
 			prevEntryDate = None
@@ -127,7 +132,7 @@ def main(argv=None):
 			prevEntryLines = 0
 
 
-	print("Found %s entries" % numEntries)
+	main_logger.info("Found %s entries" % numEntries)
 	
 	journal.close()
 	
