@@ -29,10 +29,11 @@ def main(argv=None):
 	
 	main_logger = logging.getLogger('main')
 
-	usage = "usage:  %prog [options] <MacJournal File to import>"
+	usage = "usage:  %prog [options] <MacJournal Export File to import>"
 	parser = optparse.OptionParser(usage=usage)
 	
 	parser.add_option("--debug", dest="debug", default=False, action = "store_true", help = "Turn on debug output (default false)")
+	parser.add_option("--journal", dest='target_journal', default="MacJournal Import", action = "store", help = "Specify the target journal name in Day One (default is 'MacJournal Import')")
 	
 	(options, args) = parser.parse_args()
 	
@@ -46,6 +47,8 @@ def main(argv=None):
 	else:
 		logging.basicConfig(level=logging.DEBUG)
 	
+	print "Target journal: {0}".format(options.target_journal)
+
 	try:
 		journal = open(journal_name,'r')
 	except:
@@ -62,6 +65,8 @@ def main(argv=None):
 	curEntryDate = None
 	prevEntry = ''
 	curEntry = ''
+	prevEntryTopic = ''
+	curEntryTopic = ''
 
 	#Due to python's lack of a DO/UNTIL statement, have to do things a bit differently
 	
@@ -89,20 +94,27 @@ def main(argv=None):
 			curEntryDate = entryLine.replace("\tDate:\t",'').rstrip()
 			entryDone = True
 			print("Found entry " + curEntryDate)
+		elif entryLine.startswith('\tTopic:\t'): # The current entry topic
+			prevEntryTopic = curEntryTopic
+			curEntryTopic = entryLine.replace('\tTopic:\t','').rstrip()
 		elif entryLine is not "":
 			curEntry += entryLine
 			curEntryLines += 1
 
 		if (entryDone is True) and (prevEntryLines is not 0):
 			#Write output to DayOne
-			print '{0} has {1} lines'.format(prevEntryDate,repr(prevEntryLines))
-			addCommandParsed = ['/Applications/Day One.app/Contents/MacOS/dayone', '-d="' + format(prevEntryDate) +'"', 'new']
-			print addCommandParsed
+			print '{0} has {1} lines with topic "{2}"'.format(prevEntryDate,repr(prevEntryLines), prevEntryTopic)
+			addCommandParsed = ['dayone2', 'new', 
+				'-d', '{0}'.format(prevEntryDate),
+				'-j', '{0}'.format(options.target_journal)
+				]
 			try:
+				print(addCommandParsed)
 				addCommandProcess = subprocess.Popen(addCommandParsed,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
 			except:
 				None
-			addCommandOut = addCommandProcess.communicate(prevEntry)
+			formatEntry = "{0}\n{1}\n".format(prevEntryTopic, prevEntry)
+			addCommandOut = addCommandProcess.communicate(formatEntry)
 			print addCommandOut[0]
 			print addCommandOut[1]
 			numEntries += 1
