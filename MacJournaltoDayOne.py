@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.6
+#!/usr/bin/env python2.7
 # encoding: utf-8
 """
 untitled.py
@@ -42,9 +42,9 @@ def main(argv=None):
 		journal_name = args[0]	
 	
 	if options.debug:
-		logging.basicConfig(level="logging.debug")
+		logging.basicConfig(level=logging.DEBUG)
 	else:
-		logging.basicConfig(level="logging.error")
+		logging.basicConfig(level=logging.DEBUG)
 	
 	try:
 		journal = open(journal_name,'r')
