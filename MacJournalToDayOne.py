@@ -1,14 +1,17 @@
 #!/usr/bin/env python2.7
 # encoding: utf-8
 """
-untitled.py
+MacJournalToDayOne.py
 
 Created by kdm on 2010-02-10.
+Updated on 2019-08-03 to work with Day One 2.0
+
 Copyright (c) 2010 __MyCompanyName__. All rights reserved.
+Copyright (c) 2019 Sasmito Adibowo. All rights reserved.
+
 """
 
 import sys
-#import getopt
 import time
 from datetime import date
 from datetime import timedelta
