@@ -1,6 +1,7 @@
 # MacJournal to Day One
 
-This script reads a MacJournal export file and import it into Day One. The script was forked from [Kevin McKenzie](https://github.com/Tam-Lin/MacJournaltoDayOne---Python) and updated to work with the newer version of Day One.
+This script reads a MacJournal export file and import it into Day One. The script was forked from [
+Sasmito Adibowo](https://github.com/adib/MacJournaltoDayOne---Python) and updated to work with the newer version of Day One.
 
 ## Usage
 
@@ -18,7 +19,7 @@ MacJournalToDayOne.py input-file.txt --journal="Staging"
 
 ## How to Use
 
-1. Install the Day One command line tool.
+1. Install the [Day One command line tool](https://dayoneapp.com/guides/tips-and-tutorials/command-line-interface-cli/).
 2. Create a new journal in Day One.
 3. Export a journal from MacJournal, as text file containing all entries
 4. Run MacJournalToDayOne to import to the new journal in Day One.
@@ -27,9 +28,9 @@ MacJournalToDayOne.py input-file.txt --journal="Staging"
 
 ## System Requirements
 
-- Python 2.7 (the system Python that came with macOS 10.14 “Mojave”)
-- [MacJournal 5.2.8](https://danschimpf.com)
-- [Day One](https://dayoneapp.com) 4.0
+- Python 3.6+
+- [MacJournal 6.0+](https://danschimpf.com)
+- [Day One](https://dayoneapp.com) 4.0+
 - The [Day One 2.0](https://help.dayoneapp.com/en/articles/435871-command-line-interface-cli) command line tool.
 
 

@@ -1,13 +1,15 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 # encoding: utf-8
 """
 MacJournalToDayOne.py
 
 Created by kdm on 2010-02-10.
 Updated on 2019-08-03 to work with Day One 2.0
+Updated on 2022-11-19 to work with Python3
 
 Copyright (c) 2010 __MyCompanyName__. All rights reserved.
 Copyright (c) 2019 Sasmito Adibowo. All rights reserved.
+Copyright (c) 2022 rockmkd. All rights reserved.
 
 """
 
@@ -50,7 +52,7 @@ def main(argv=None):
 	else:
 		logging.basicConfig(level=logging.ERROR)
 	
-	print "Target journal: {0}".format(options.target_journal)
+	print ("Target journal: {0}".format(options.target_journal))
 
 	try:
 		journal = open(journal_name,'r')
@@ -60,7 +62,6 @@ def main(argv=None):
 
 	numEntries = 0
 	prevEntryDate = None
-	journalEntry = None
 	curEntryLines = 0
 	prevEntryLines = 0
 	continueLoop = True
@@ -85,26 +86,28 @@ def main(argv=None):
 			prevEntryLines = curEntryLines
 			curEntry = ''
 			curEntryLines = 0
-
 			main_logger.debug("Reached EOF")
 	
-		if entryLine.startswith("\tDate:\t"): # An entry is finished
+		if entryLine.startswith("Date: "): # An entry is finished
 			prevEntryDate = curEntryDate
 			prevEntry = curEntry
 			prevEntryLines = curEntryLines
 			curEntry = ''
 			curEntryLines = 0
-			curEntryDate = entryLine.replace("\tDate:\t",'').rstrip()
+			curEntryDate = entryLine.replace("Date: ",'').rstrip()
 			entryDone = True
 			main_logger.debug("Found entry: {0}".format(curEntryDate))
-		elif entryLine.startswith('\tTopic:\t'): # The current entry topic
+		elif entryLine.startswith('Topic: '): # The current entry topic
 			prevEntryTopic = curEntryTopic
-			curEntryTopic = entryLine.replace('\tTopic:\t','').rstrip()
-		elif entryLine is not "":
+			curEntryTopic = entryLine.replace('Topic: ','').rstrip()
+		elif entryLine.startswith('Mood: '):
+			curEntryLines = curEntryLines
+			## do nothing
+		elif entryLine != "":
 			curEntry += entryLine
 			curEntryLines += 1
 
-		if (entryDone is True) and (prevEntryLines is not 0):
+		if entryDone is True and prevEntryLines != 0:
 			#Write output to DayOne
 			main_logger.info('{0} has {1} lines with topic "{2}"'.format(prevEntryDate,repr(prevEntryLines), prevEntryTopic))
 			addCommandParsed = ['dayone2', 'new', 
@@ -113,14 +116,16 @@ def main(argv=None):
 				]
 			try:
 				main_logger.debug("dayone2 {0}".format(addCommandParsed))
-				addCommandProcess = subprocess.Popen(addCommandParsed,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+				addCommandProcess = subprocess.Popen(addCommandParsed,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE)				
 			except:
 				None
-			formatEntry = "{0}\n{1}\n".format(prevEntryTopic, prevEntry)
-			addCommandOut = addCommandProcess.communicate(formatEntry)
+			
+			formatEntry = "{0}\n{1}\n".format(curEntryTopic, prevEntry)	
+			addCommandOut = addCommandProcess.communicate(formatEntry.encode("utf-8"))				
 			main_logger.info("STDOUT from dayone2: {0}".format(addCommandOut[0]))
 			main_logger.info("STDERR from dayone2: {0}".format(addCommandOut[1]))
 			addCommandProcess.wait()
+			
 			returnCode = addCommandProcess.returncode
 			if returnCode != 0:
 				main_logger.error("DayOne failed to import entry dated {0} with error code {1}".format(prevEntryDate, returnCode))
